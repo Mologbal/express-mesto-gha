@@ -2,7 +2,9 @@ const express = require('express');
 const userRouter = require('express').Router();
 const {
   createUser, getUser, getUserId, updateAvatar, updateUser,
-} = require('../controllers/users');
+} = require(
+  '../controllers/users',
+);
 
 userRouter.post('/users', createUser);
 userRouter.get('/users', express.json(), getUser);

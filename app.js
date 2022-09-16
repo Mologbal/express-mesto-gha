@@ -5,42 +5,42 @@ const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
 
 const {
-    PORT = 3000
+  PORT = 3000,
 } = process.env;
 const app = express();
 
-//временная "заглушка по заданию работы"
+// временная "заглушка по заданию работы"
 app.use((req, res, next) => {
-    req.user = {
-        _id: '632392742cd165f229de29af'
-    };
+  req.user = {
+    _id: '632392742cd165f229de29af',
+  };
 
-    next();
+  next();
 });
 
 app.use(bodyParser.json());
 app.use(routerUsers);
 app.use(routerCards);
 
-//необходимые виды ошибок
+// необходимые виды ошибок
 const DEFAULT_ERROR = 500;
 const NOT_FOUND_ERROR = 404;
 
 app.use('*', (req, res) => {
-    res
-        .status(NOT_FOUND_ERROR)
-        .send({message: 'Такой страницы не найдено'});
+  res
+    .status(NOT_FOUND_ERROR)
+    .send({ message: 'Такой страницы не найдено' });
 });
 
 function start(req, res) {
-    try {
-        mongoose.connect('mongodb://localhost:27017/mestodb');
-        app.listen(PORT);
-    } catch (err) {
-        res
-            .status(DEFAULT_ERROR)
-            .send({message: 'С сервером что-то не так :('});
-    }
+  try {
+    mongoose.connect('mongodb://localhost:27017/mestodb');
+    app.listen(PORT);
+  } catch (err) {
+    res
+      .status(DEFAULT_ERROR)
+      .send({ message: 'С сервером что-то не так :(' });
+  }
 }
 
 start();
