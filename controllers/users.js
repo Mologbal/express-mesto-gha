@@ -90,8 +90,8 @@ const updateUser = async (req, res) => {
         return res
             .status(200)
             .send(user);
-    } catch (errors) {
-        if (errors.name === 'ValidationError') {
+    } catch (err) {
+        if (err.name === 'ValidationError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({
@@ -127,8 +127,8 @@ const updateAvatar = async (req, res) => {
         return res
             .status(200)
             .send(user);
-    } catch (errors) {
-        if (errors.name === 'ValidationError') {
+    } catch (err) {
+        if (err.name === 'ValidationError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({

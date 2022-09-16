@@ -14,8 +14,8 @@ const createCard = async (req, res) => {
         return res
             .status(200)
             .send(card);
-    } catch (errors) {
-        if (errors.name === 'ValidationError') {
+    } catch (err) {
+        if (err.name === 'ValidationError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({message: 'Некорректные данные карточки'});
@@ -45,11 +45,16 @@ const deleteCard = async (req, res) => {
     const {cardId} = req.params;
     try {
         const card = await Card.findByIdAndDelete(cardId);
-        return res
+        if (!card) {
+            return res
+                .status(NOT_FOUND_ERROR)
+                .send({message: 'Такой карточки не найдено'});
+        }
+        res
             .status(200)
             .send(card);
-    } catch (errors) {
-        if (errors.name === 'CastError') {
+    } catch (err) {
+        if (err.name === 'CastError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({message: 'Некорректные данные запроса'});
@@ -79,8 +84,8 @@ const likeCard = async (req, res) => {
         return res
             .status(200)
             .send(card);
-    } catch (errors) {
-        if (errors.name === 'CastError') {
+    } catch (err) {
+        if (err.name === 'CastError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({message: 'Некорректные данные запроса'});
@@ -90,7 +95,6 @@ const likeCard = async (req, res) => {
             .send({message: 'С сервером что-то не так :('});
     }
 };
-
 
 //убрать лайк карточке
 const dislikeCard = async (req, res) => {
@@ -111,8 +115,8 @@ const dislikeCard = async (req, res) => {
         return res
             .status(200)
             .send(card);
-    } catch (errors) {
-        if (errors.name === 'CastError') {
+    } catch (err) {
+        if (err.name === 'CastError') {
             return res
                 .status(BAD_REQUEST_ERROR)
                 .send({message: 'Некорректные данные запроса'});
