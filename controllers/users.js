@@ -1,9 +1,7 @@
 const User = require('../models/user');
 
 // список необходимых видов ошибок
-const DEFAULT_ERROR = 500;
-const NOT_FOUND_ERROR = 404;
-const BAD_REQUEST_ERROR = 400;
+const { DEFAULT_ERROR, NOT_FOUND_ERROR, BAD_REQUEST_ERROR } = require('../utils/utils');
 
 // создать пользователя
 const createUser = async (req, res) => {
@@ -11,7 +9,6 @@ const createUser = async (req, res) => {
   try {
     const user = await User.create({ name, about, avatar });
     return res
-      .status(200)
       .send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -32,7 +29,6 @@ const getUser = async (req, res) => {
   try {
     const users = await User.find({});
     return res
-      .status(200)
       .send(users);
   } catch (err) {
     return res
@@ -52,7 +48,6 @@ const getUserId = async (req, res) => {
         .send({ message: 'Такого пользователя не существует' });
     }
     return res
-      .status(200)
       .send(user);
   } catch (err) {
     if (err.name === 'CastError') {
@@ -80,13 +75,12 @@ const updateUser = async (req, res) => {
     });
     if (!user) {
       return res
-        .status(BAD_REQUEST_ERROR)
+        .status(NOT_FOUND_ERROR)
         .send({
-          message: 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля',
+          message: 'Такого пользователя не существует',
         });
     }
     return res
-      .status(200)
       .send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -112,13 +106,12 @@ const updateAvatar = async (req, res) => {
     }, { new: true, runValidators: true });
     if (!user) {
       return res
-        .status(BAD_REQUEST_ERROR)
+        .status(NOT_FOUND_ERROR)
         .send({
-          message: 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля',
+          message: 'Такого пользователя не существует',
         });
     }
     return res
-      .status(200)
       .send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {

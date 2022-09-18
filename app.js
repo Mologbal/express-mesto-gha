@@ -9,7 +9,7 @@ const {
 } = process.env;
 const app = express();
 
-// временная "заглушка по заданию работы"
+// временная "заглушка" по заданию работы
 app.use((req, res, next) => {
   req.user = {
     _id: '632392742cd165f229de29af',
@@ -18,13 +18,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.json());
 app.use(bodyParser.json());
 app.use(routerUsers);
 app.use(routerCards);
 
 // необходимые виды ошибок
-const DEFAULT_ERROR = 500;
-const NOT_FOUND_ERROR = 404;
+const { DEFAULT_ERROR, NOT_FOUND_ERROR } = require('./utils/utils');
 
 app.use('*', (req, res) => {
   res

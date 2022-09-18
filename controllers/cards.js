@@ -1,9 +1,7 @@
 const Card = require('../models/card');
 
 // список необходимых видов ошибок
-const DEFAULT_ERROR = 500;
-const NOT_FOUND_ERROR = 404;
-const BAD_REQUEST_ERROR = 400;
+const { DEFAULT_ERROR, NOT_FOUND_ERROR, BAD_REQUEST_ERROR } = require('../utils/utils');
 
 // создание карточки
 const createCard = async (req, res) => {
