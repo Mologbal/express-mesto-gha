@@ -1,134 +1,142 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const NotFound = require('../errors/notFoundError');
+const ConflictError = require('../errors/conflictError');
+const BadRequestError = require('../errors/badRequestError');
+const { getJwtToken } = require('../utils/jwt');
 
-// список необходимых видов ошибок
-const { DEFAULT_ERROR, NOT_FOUND_ERROR, BAD_REQUEST_ERROR } = require('../utils/utils');
-
-// создать пользователя
-const createUser = async (req, res) => {
-  const { name, about, avatar } = req.body;
-  try {
-    const user = await User.create({ name, about, avatar });
-    return res
-      .send(user);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res
-        .status(BAD_REQUEST_ERROR)
-        .send({
-          message: 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля',
-        });
-    }
-    return res
-      .status(DEFAULT_ERROR)
-      .send({ message: 'С сервером что-то не так :(' });
-  }
+// выдаст список пользователей
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch(next);
 };
 
-// получить список всех пользователей
-const getUser = async (req, res) => {
-  try {
-    const users = await User.find({});
-    return res
-      .send(users);
-  } catch (err) {
-    return res
-      .status(DEFAULT_ERROR)
-      .send({ message: 'С сервером что-то не так :(' });
-  }
+// выдаст пользователя по id
+const getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail(() => {
+      throw new NotFound('Такого пользователя не существует');
+    })
+    .then((user) => {
+      res.send({ user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Некорректный id'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-// получить пользователя по ID
-const getUserId = async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const user = await User.findById(userId);
+// выдаст информацию о текущем пользователе
+const getCurrentUser = (req, res, next) => {
+  const { _id } = req.user;
+  User.findById(_id).then((user) => {
     if (!user) {
-      return res
-        .status(NOT_FOUND_ERROR)
-        .send({ message: 'Такого пользователя не существует' });
+      return next(new NotFound('Такого пользователя не существует'));
     }
-    return res
-      .send(user);
-  } catch (err) {
+    return res.status(200).send(user);
+  }).catch((err) => {
     if (err.name === 'CastError') {
-      return res
-        .status(BAD_REQUEST_ERROR)
-        .send({ message: 'Некорректные данные пользователя' });
+      next(new BadRequestError('Некорректный id'));
+    } else {
+      next(err);
     }
-    return res
-      .status(DEFAULT_ERROR)
-      .send({ message: 'Ошибка на сервере' });
-  }
+  });
 };
 
-// обновить данные пользователя
-const updateUser = async (req, res) => {
-  const { name, about } = req.body;
-  const id = req.user._id;
-  try {
-    const user = await User.findByIdAndUpdate(id, {
+// создаст нового пользователя
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Неправильные почта или пароль');
+  }
+  // хэшируем пароль
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({
       name,
       about,
-    }, {
-      new: true,
-      runValidators: true,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => {
+      const newUser = { ...user._doc };
+      delete newUser.password;
+      res.status(201).send(newUser);
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new ConflictError('Такой пользователь уже существует'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequestError('Некорректные данные при создании пользователя'));
+      } else {
+        next(err);
+      }
     });
-    if (!user) {
-      return res
-        .status(NOT_FOUND_ERROR)
-        .send({
-          message: 'Такого пользователя не существует',
-        });
-    }
-    return res
-      .send(user);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res
-        .status(BAD_REQUEST_ERROR)
-        .send({
-          message: 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля',
-        });
-    }
-    return res
-      .status(DEFAULT_ERROR)
-      .send({ message: 'С сервером что-то не так :(' });
-  }
 };
 
-// обновить аватарку пользователя
-const updateAvatar = async (req, res) => {
+// PR 14 функция входа
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      if (!user || !password) {
+        return next(new BadRequestError('Неправильные почта или пароль'));
+      }
+      const token = getJwtToken(user.id);
+      return res.send({ token });
+    })
+    .catch(next);
+};
+
+// обновит информацию о пользователе
+const updateUser = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
+    .orFail(() => {
+      throw new NotFound('Такого пользователя не существует');
+    })
+    .then((user) => res.status(200).send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Некорректные данные пользователя.'));
+      } else {
+        next(err);
+      }
+    });
+};
+
+// обновит аватарку пользователя
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  const id = req.user._id;
-  try {
-    const user = await User.findByIdAndUpdate(id, {
-      avatar,
-    }, { new: true, runValidators: true });
-    if (!user) {
-      return res
-        .status(NOT_FOUND_ERROR)
-        .send({
-          message: 'Такого пользователя не существует',
-        });
-    }
-    return res
-      .send(user);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res
-        .status(BAD_REQUEST_ERROR)
-        .send({ message: 'Переданы некорректные данные в методы создания карточки, пользователя, обновления аватара пользователя или профиля' });
-    }
-    return res
-      .status(DEFAULT_ERROR)
-      .send({ message: 'С сервером что-то не так :(' });
-  }
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  )
+    .orFail(() => {
+      throw new NotFound('Такого пользователя не существует');
+    })
+    .then((user) => res.status(200).send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports = {
-  createUser,
-  getUser,
-  getUserId,
-  updateUser,
-  updateAvatar,
+  getUsers, getUserById, createUser, updateUser, getCurrentUser, updateAvatar, login,
 };
