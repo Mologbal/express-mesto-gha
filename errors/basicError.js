@@ -1,7 +1,7 @@
 const { ErrorDefault } = require('./allErrors');
 
 class ApplicationError extends Error {
-  constructor(status = ErrorDefault, message = 'Internal server error') {
+  constructor(status = ErrorDefault, message = 'Ошибка на стороне сервера') {
     super();
     this.status = status;
     this.message = message;

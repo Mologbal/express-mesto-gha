@@ -16,7 +16,7 @@ router.post('/cards', celebrate({
 // вернёт карточки
 router.get('/cards', getCards);
 
-// удаление карточки по идентификатору
+// удалит карточку по идентификатору
 router.delete('/cards/:cardId', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().hex().length(24),

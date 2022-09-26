@@ -4,16 +4,14 @@ const mongoose = require('mongoose');
 const { errors, celebrate, Joi } = require('celebrate');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const ErrorDefault = require('./errors/allErrors');
 const NotFound = require('./errors/notFoundError');
-
+const ErrorDefault = require('./errors/allErrors');
 
 const { createUser, login } = require('./controllers/users');
-const auth = require('./middlewares/auth');
+const {auth} = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
-
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -38,12 +36,12 @@ app.post('/signin', celebrate({
   }),
 }), login);
 
-app.use(auth);
+app.use(auth)
 
 app.use('/', userRouter);
 app.use('/', cardRouter);
 app.use('*', (req, res, next) => {
-  next(new NotFound('Такой страницы не найдено'));
+  next(new NotFound('Страница не найдена'));
 });
 
 app.use(errors());
@@ -52,7 +50,7 @@ app.use((err, req, res, next) => {
   if (err.status) {
     res.status(err.status).send({ message: err.message });
   } else {
-    res.status(ErrorDefault).send({ message: 'Ошибка на стороне сервера' });
+    res.status(ErrorDefault).send({ message: 'Internal Server Error' });
   }
   next();
 });

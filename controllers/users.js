@@ -53,9 +53,8 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
   if (!email || !password) {
-    throw new BadRequestError('Неправильные почта или пароль');
+    throw new BadRequestError('Email или пароль не могут быть пустыми');
   }
-  // хэшируем пароль
   return bcrypt
     .hash(password, 10)
     .then((hash) => User.create({
@@ -74,7 +73,7 @@ const createUser = (req, res, next) => {
       if (err.code === 11000) {
         next(new ConflictError('Такой пользователь уже существует'));
       } else if (err.name === 'ValidationError') {
-        next(new BadRequestError('Некорректные данные при создании пользователя'));
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       } else {
         next(err);
       }
@@ -89,7 +88,7 @@ const login = (req, res, next) => {
       if (!user || !password) {
         return next(new BadRequestError('Неправильные почта или пароль'));
       }
-      const token = getJwtToken(user.id);
+      const token = getJwtToken(user._id);
       return res.send({ token });
     })
     .catch(next);

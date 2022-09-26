@@ -14,7 +14,7 @@ const cardSchema = new mongoose.Schema({
       validator(v) {
         return /https?:\/\/(w{3}\.)?([\w-]{1,}\.)+[\w._~:/?#[\]@!$&'()*+,;=]*#?/i.test(v);
       },
-      message: 'Передана некорректная ссылка на карточку',
+      message: 'Ссылка на вашу карточку некорректна',
     },
   },
   owner: {
