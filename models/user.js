@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
       validator(v) {
         return /https?:\/\/(w{3}\.)?([\w-]{1,}\.)+[\w._~:/?#[\]@!$&'()*+,;=]*#?/i.test(v);
       },
-      message: 'Передана некорректная ссылка на аватар',
+      message: 'Ссылка на ваш аватар некорректна',
     },
   },
   email: {
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate(value) {
       if (!validator.isEmail(value)) {
-        throw new BadRequestError({ message: 'Не верный формат электронной почты' });
+        throw new BadRequestError({ message: 'Некорректный вид эл. почты' });
       }
     },
   },
@@ -51,12 +51,12 @@ const userSchema = new mongoose.Schema({
 userSchema.statics.findUserByCredentials = function findOne(email, password) {
   return this.findOne({ email }).select('+password').then((user) => {
     if (!user) {
-      throw new UnauthorizedError('Неправильные почта или пароль');
+      throw new UnauthorizedError('Почта или пароль неверны');
     }
     //сравним хеш пароля
     return bcrypt.compare(password, user.password).then((matched) => {
       if (!matched) {
-        throw new UnauthorizedError('Неправильные почта или пароль');
+        throw new UnauthorizedError('Почта или пароль неверны');
       }
       return user;
     });
