@@ -10,19 +10,19 @@ const userSchema = new mongoose.Schema({
     required: false,
     minlength: 2,
     maxlength: 30,
-    default: "Жак-Ив Кусто",
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
     required: false,
     minlength: 2,
     maxlength: 30,
-    default: "Исследователь",
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
     required: false,
-    default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(v) {
         return /https?:\/\/(w{3}\.)?([\w-]{1,}\.)+[\w._~:/?#[\]@!$&'()*+,;=]*#?/i.test(v);
@@ -43,7 +43,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8,
     select: false,
   },
 });
@@ -53,7 +52,7 @@ userSchema.statics.findUserByCredentials = function findOne(email, password) {
     if (!user) {
       throw new UnauthorizedError('Почта или пароль неверны');
     }
-    //сравним хеш пароля
+    // сравним хеш пароля
     return bcrypt.compare(password, user.password).then((matched) => {
       if (!matched) {
         throw new UnauthorizedError('Почта или пароль неверны');

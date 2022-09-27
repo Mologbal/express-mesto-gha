@@ -39,11 +39,7 @@ const getCurrentUser = (req, res, next) => {
     }
     return res.status(200).send(user);
   }).catch((err) => {
-    if (err.name === 'CastError') {
-      next(new BadRequestError('Некорректный id'));
-    } else {
-      next(err);
-    }
+    next(err);
   });
 };
 
@@ -72,11 +68,8 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.code === 11000) {
         next(new ConflictError('Такой пользователь уже существует'));
-      } else if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-      } else {
-        next(err);
       }
+      next(err);
     });
 };
 
@@ -85,9 +78,6 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user || !password) {
-        return next(new BadRequestError('Неправильные почта или пароль'));
-      }
       const token = getJwtToken(user._id);
       return res.send({ token });
     })
@@ -107,11 +97,7 @@ const updateUser = (req, res, next) => {
     })
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Некорректные данные пользователя.'));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 
@@ -128,11 +114,7 @@ const updateAvatar = (req, res, next) => {
     })
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Некорректные данные'));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 
