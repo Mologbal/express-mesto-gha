@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
@@ -9,7 +10,7 @@ const ErrorDefault = require('./errors/allErrors');
 const loginAndRegister = require('./routes/index');
 const { auth } = require('./middlewares/auth');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -17,11 +18,17 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useUnifiedTopology: true,
 });
 app.use(bodyParser.json());
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', loginAndRegister);
 
 app.use(auth);
-
+app.use(
+  cors({
+    origin: 'https://mologbal.nomoredomains.icu',
+    credentials: true,
+  }),
+);
 app.use('/', userRouter);
 app.use('/', cardRouter);
 app.use('*', (req, res, next) => {
