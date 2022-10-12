@@ -25,7 +25,7 @@ app.use('/', loginAndRegister);
 app.use(auth);
 app.use(
   cors({
-    origin: 'https://mologbal.nomoredomains.icu',
+    origin: 'https://localhost:3001',
     credentials: true,
   }),
 );
